@@ -3,7 +3,7 @@ project(hparser VERSION 1.0 LANGUAGES CXX)
 get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 option(HPARSER_TESTING "Включить модульное тестирование" ON)
 option(HPARSER_COVERAGE "Включить измерение покрытия кода тестами" OFF)
-option(HPARSER_BUILD_SHARED_LIBS "Собирать либу как shared" OFF)
+option(HPARSER_BUILD_SHARED_LIBS "Собирать библиотеку как shared" OFF)
 add_compile_options(
     -Werror
 
@@ -66,10 +66,10 @@ install(FILES
         share/hparser/cmake
 )
 
-if(NOT MYLIB_TESTING)
-    message(STATUS "Тестирование проекта Mylib выключено")
+if(NOT HPARSER_TESTING)
+    message(STATUS "Тестирование проекта отключено")
 elseif(IS_SUBPROJECT)
-    message(STATUS "Mylib не тестируется в режиме подмодуля")
+    message(STATUS "Тестирование проекта отключено для подпроекта")
 else()
     add_subdirectory(test)
 endif()
