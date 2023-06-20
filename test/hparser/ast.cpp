@@ -9,7 +9,7 @@ TEST_CASE("AST", "[ast]")
         REQUIRE(type->name() == "int");
         REQUIRE(type->is_primitive());
         REQUIRE(type->structure() == nullptr);
-        REQUIRE(type->to_string() == "{type: Type, name: int}");
+        REQUIRE(type->to_string() == "{\"type\": \"Type\", \"name\": int}");
     }
 
     SECTION("Structure")
@@ -18,14 +18,14 @@ TEST_CASE("AST", "[ast]")
         FieldExpression* field = new FieldExpression("x", type);
         StructureExpression* structure = new StructureExpression();
         structure->add_field(field);
-        REQUIRE(structure->fields().size() == 1);
-        REQUIRE(structure->fields()[0] == field);
-        REQUIRE(structure->to_string() == "{type: Structure, fields: [{type: Field, name: x, field_type: {type: Type, name: int}}]}");
+        REQUIRE((*structure->fields()).size() == 1);
+        REQUIRE((*structure->fields())[0] == field);
+        REQUIRE(structure->to_string() == "{\"type\": \"Structure\", \"fields\": [{\"type\": \"Field\", \"name\": x, \"field_type\": {\"type\": \"Type\", \"name\": int}}]}");
         TypeExpression* non_primitive_type = new TypeExpression("struct", structure);
         REQUIRE(non_primitive_type->name() == "struct");
         REQUIRE(!non_primitive_type->is_primitive());
         REQUIRE(non_primitive_type->structure() == structure);
-        REQUIRE(non_primitive_type->to_string() == "{type: Type, name: struct, structure: {type: Structure, fields: [{type: Field, name: x, field_type: {type: Type, name: int}}]}}");
+        REQUIRE(non_primitive_type->to_string() == "{\"type\": \"Type\", \"name\": struct, \"structure\": {\"type\": \"Structure\", \"fields\": [{\"type\": \"Field\", \"name\": x, \"field_type\": {\"type\": \"Type\", \"name\": int}}]}}");
     }
 
     SECTION("Field")
@@ -34,7 +34,7 @@ TEST_CASE("AST", "[ast]")
         FieldExpression* field = new FieldExpression("x", type);
         REQUIRE(field->name() == "x");
         REQUIRE(field->field_type() == type);
-        REQUIRE(field->to_string() == "{type: Field, name: x, field_type: {type: Type, name: int}}");
+        REQUIRE(field->to_string() == "{\"type\": \"Field\", \"name\": x, \"field_type\": {\"type\": \"Type\", \"name\": int}}");
     }
 
     SECTION("Access")
@@ -86,9 +86,9 @@ TEST_CASE("AST", "[ast]")
         structure2->add_field(int_arr);
 
 
-        REQUIRE(structure2->fields().size() == 2);
-        REQUIRE(structure2->fields()[0] == field_size);
-        REQUIRE(structure2->fields()[1] == int_arr);
+        REQUIRE((*structure2->fields()).size() == 2);
+        REQUIRE((*structure2->fields())[0] == field_size);
+        REQUIRE((*structure2->fields())[1] == int_arr);
 
         REQUIRE(access2->is_numeric());
         REQUIRE(access3->is_index());

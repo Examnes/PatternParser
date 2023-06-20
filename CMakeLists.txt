@@ -4,6 +4,13 @@ get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 option(HPARSER_TESTING "Включить модульное тестирование" ON)
 option(HPARSER_COVERAGE "Включить измерение покрытия кода тестами" OFF)
 option(HPARSER_BUILD_SHARED_LIBS "Собирать библиотеку как shared" OFF)
+
+find_package(BISON)
+find_package(FLEX)
+# turn debug on
+set(BISON_DEBUG TRUE)
+set(BISON_VERBOSE TRUE)
+
 add_compile_options(
     -Werror
 
@@ -23,9 +30,22 @@ add_compile_options(
     -Wredundant-decls
     -Wsign-conversion
     -Wsign-promo
+    
+    -Wno-old-style-cast
+    -Wno-sign-conversion
+    -Wno-conversion
+    -Wno-reorder
+    -Wno-unused-variable
+    -Wno-unused-parameter
 )
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+bison_target(Parser bnf/parse.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
+flex_target(Scanner bnf/scan.ll ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
+add_flex_bison_dependency(Scanner Parser)
+
+set(SOURCES ${SOURCES} ${BISON_Parser_OUTPUTS} ${FLEX_Scanner_OUTPUTS})
+
 
 if(NOT CMAKE_CXX_EXTENSIONS)
     set(CMAKE_CXX_EXTENSIONS OFF)
@@ -37,9 +57,13 @@ else()
     add_library(hparser ${SOURCES})
 endif()
 
-target_include_directories(hparser INTERFACE
+target_include_directories(hparser PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories(hparser PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
 target_compile_features(hparser INTERFACE cxx_std_17)

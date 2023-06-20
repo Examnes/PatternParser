@@ -14,8 +14,8 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Program" << ", ";
-        ss << "types: [";
+        ss << "\"type\": " << "\"Program\"" << ", ";
+        ss << "\"types\": [";
         for (auto type : m_types)
         {
             ss << type->to_string() << ", ";

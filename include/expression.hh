@@ -13,7 +13,8 @@ enum class ExpressionType
     FieldAccess,
     Select,
     Index,
-    Program
+    Program,
+    Request
 };
 
 class Expression

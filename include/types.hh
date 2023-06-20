@@ -8,8 +8,13 @@
 class FieldExpression : public Expression
 {
 public:
-    FieldExpression() = default;
-    FieldExpression(std::string name, Expression* type) : m_name(name), m_type(type) {}
+    FieldExpression()
+    {
+        m_name = "";
+        m_type = nullptr;
+        m_size = nullptr;
+    }
+    FieldExpression(std::string name, Expression* type) : m_name(name), m_type(type), m_size(nullptr) {}
     FieldExpression(std::string name, Expression* type, Expression* size) : m_name(name), m_type(type), m_size(size) {}
     virtual ~FieldExpression() = default;
     virtual ExpressionType type() const override { return ExpressionType::Field; }
@@ -17,9 +22,14 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Field" << ", ";
-        ss << "name: " << m_name << ", ";
-        ss << "field_type: " << m_type->to_string();
+        ss << "\"type\": " << "\"Field\"" << ", ";
+        ss << "\"name\": " << m_name << ", ";
+        ss << "\"field_type\": " << m_type->to_string();
+        if (m_size != nullptr)
+        {
+            ss << ", ";
+            ss << "\"size\": " << m_size->to_string();
+        }
         ss << "}";
         return ss.str(); 
     }
@@ -27,25 +37,26 @@ public:
     Expression* field_type() const { return m_type; }
     Expression* size() const { return m_size; }
     bool is_array() const { return m_size != nullptr; }
-private:
+
     std::string m_name;
     Expression* m_type;
     Expression* m_size;
+private:
 };
 
 class StructureExpression : public Expression
 {
 public:
     StructureExpression() = default;
-    StructureExpression(std::vector<Expression*> fields) : m_fields(fields) {}
+    StructureExpression(std::vector<FieldExpression*> fields) : m_fields(fields) {}
     virtual ~StructureExpression() = default;
     virtual ExpressionType type() const override { return ExpressionType::Structure; }
     virtual std::string to_string() const override 
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Structure" << ", ";
-        ss << "fields: [";
+        ss << "\"type\": " << "\"Structure\"" << ", ";
+        ss << "\"fields\": [";
         for (auto field : m_fields)
         {
             ss << field->to_string() << ", ";
@@ -55,7 +66,7 @@ public:
         ss << "}";
         return ss.str(); 
     }
-    void add_field(Expression* field)
+    void add_field(FieldExpression* field)
     {
         std::string name = dynamic_cast<FieldExpression*>(field)->name();
         for (auto f : m_fields)
@@ -67,9 +78,34 @@ public:
         }
         m_fields.push_back(field);
     }
-    std::vector<Expression*> fields() const { return m_fields; }
+    std::vector<FieldExpression*>* fields() { return &m_fields; }
+
+    bool has_field(std::string name) const
+    {
+        for (auto field : m_fields)
+        {
+            if (dynamic_cast<FieldExpression*>(field)->name() == name)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    FieldExpression* get_field(std::string name) const
+    {
+        for (auto field : m_fields)
+        {
+            if (dynamic_cast<FieldExpression*>(field)->name() == name)
+            {
+                return field;
+            }
+        }
+        throw std::runtime_error("Field " + name + " does not exist in structure");
+    }
+    std::vector<FieldExpression*> m_fields;
 private:
-    std::vector<Expression*> m_fields;
+    
 };
 
 class TypeExpression : public Expression
@@ -84,10 +120,10 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Type" << ", ";
-        ss << "name: " << m_name;
+        ss << "\"type\": " << "\"Type\"" << ", ";
+        ss << "\"name\": " << m_name;
         if (m_structure)
-            ss << ", " << "structure: " << m_structure->to_string();
+            ss << ", " << "\"structure\": " << m_structure->to_string();
         ss << "}";
         return ss.str(); 
     }

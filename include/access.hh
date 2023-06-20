@@ -14,8 +14,8 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "FieldAccess" << ", ";
-        ss << "field: " << get_field()->to_string();
+        ss << "\"type\": " << "\"FieldAccess\"" << ", ";
+        ss << "\"field\": " << get_field()->to_string();
         ss << "}";
         return ss.str(); 
     }
@@ -50,14 +50,24 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Access" << ", ";
+        ss << "\"type\": " << "\"Access\"" << ", ";
         if (m_field)
         {
-            ss << "field: " << m_field->to_string();
+            ss << "\"field\": " << m_field->to_string();
         }
         else
         {
-            ss << "index: " << m_index;
+            ss << "\"index\": " << m_index;
+        }
+        if (m_chain.size() > 0)
+        {
+            ss << ", ";
+            ss << "\"chain\": [";
+            for (auto access : m_chain)
+            {
+                ss << access->to_string() << ", ";
+            }
+            ss << "]";
         }
         ss << "}";
         return ss.str(); 
@@ -79,7 +89,8 @@ public:
             throw std::runtime_error("Trying to get access to a number");
         }else
         {
-            return dynamic_cast<FieldExpression*>(dynamic_cast<FieldAccessExpression*>(m_chain[0])->get_field());
+            return dynamic_cast<FieldExpression*>(
+                dynamic_cast<FieldAccessExpression*>(m_chain[m_chain.size() - 1])->get_field());
         }
     }
 
@@ -108,12 +119,12 @@ public:
         return new Access(dynamic_cast<FieldExpression*>(m_field), m_chain);
     }
 
-
-private:
     Expression* m_field = nullptr;
     Expression* m_structure = nullptr;
     long m_index = -1;
     std::vector<Expression*> m_chain;
+private:
+    
 };
 
 class SelectExpression : public FieldAccessExpression
@@ -128,7 +139,7 @@ public:
             throw std::runtime_error("Trying to select a field from a primitive type");
         }
         StructureExpression* structure = dynamic_cast<StructureExpression*>(type->structure());
-        for (auto field_ref : structure->fields())
+        for (auto field_ref : *(structure->fields()))
         {
             FieldExpression* field = dynamic_cast<FieldExpression*>(field_ref);
             if (field->name() == selected_field)
@@ -146,15 +157,16 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Select" << ", ";
-        ss << "field: " << m_field->to_string();
+        ss << "\"type\": " << "\"Select\"" << ", ";
+        ss << "\"field\": " << m_field->to_string();
         ss << "}";
         return ss.str(); 
     }
     virtual FieldExpression* get_field() const override { return m_field; }
     virtual bool is_select() const override { return true; }
-private:
     FieldExpression* m_field;
+private:
+    
 };
 
 class IndexExpression : public FieldAccessExpression
@@ -189,18 +201,44 @@ public:
     { 
         std::stringstream ss;
         ss << "{";
-        ss << "type: " << "Index" << ", ";
-        ss << "field: " << m_field->to_string() << ", ";
-        ss << "index: " << m_index->to_string();
+        ss << "\"type\": " << "\"Index\"" << ", ";
+        ss << "\"field\": " << m_field->to_string() << ", ";
+        ss << "\"index\": " << m_index->to_string();
         ss << "}";
         return ss.str();
     }
     virtual FieldExpression* get_field() const override { return m_field; }
     virtual bool is_index() const override { return true; }
-private:
     FieldExpression* m_field;
     AccessExpression* m_index;
+private:
+    
 };
 
+class RequestExpression : public Expression
+{
+public:
+    RequestExpression() = default;
+    RequestExpression(StructureExpression* structure) : m_structure(structure) {}
+    virtual ~RequestExpression() = default;
+    virtual ExpressionType type() const override { return ExpressionType::Request; }
+
+    virtual std::string to_string() const override 
+    { 
+        std::stringstream ss;
+        ss << "{";
+        ss << "\"type\": " << "\"Request\"" << ", ";
+        ss << "\"structure\": " << m_structure->to_string();
+        ss << "}";
+        return ss.str(); 
+    }
+
+    StructureExpression* structure() const { return m_structure; }
+    void set_access(AccessExpression* access) { m_access = access; }
+    StructureExpression* m_structure;
+    AccessExpression* m_access;
+private:
+    
+};
 
 #endif // AST_ACCESS_HH

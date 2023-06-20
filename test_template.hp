@@ -1,0 +1,14 @@
+struct sizes
+{
+    int size;
+    int start[10];
+    int end;
+};
+
+struct file
+{
+    sizes s[3];
+    char name[s[0].size];
+    int arr[10];
+    int arr2[s[s[1].start[1]].start[0]];
+};

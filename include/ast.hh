@@ -4,5 +4,6 @@
 #include "expression.hh"
 #include "access.hh"
 #include "types.hh"
+#include "general.hh"
 
 #endif // AST_H
